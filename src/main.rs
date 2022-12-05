@@ -20,11 +20,15 @@ struct MultiplicationTask {
 }
 
 impl MultiplicationTask {
-    fn random() -> (i32, i32) {
+    fn random() -> Self {
         let mut rng = rand::thread_rng();
         let range = Uniform::new(1, 10);
 
-        (rng.sample(range), rng.sample(range))
+        Self {
+            x: rng.sample(range),
+            y: rng.sample(range),
+            answer: None,
+        }
     }
 
     fn correct(&self) -> bool {
@@ -33,17 +37,28 @@ impl MultiplicationTask {
             None => false,
         }
     }
+
+    fn state(&self) -> &'static str {
+        if let Some(answer) = self.answer {
+            if answer == self.x * self.y {
+                "correct"
+            } else {
+                "wrong"
+            }
+        } else {
+            "skipped"
+        }
+    }
 }
 
 impl Display for MultiplicationTask {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.answer {
             Some(answer) => {
-                let marker = if self.correct() { "✓" } else { "✗" };
-                write!(f, "{} x {} = {} {}", self.x, self.y, answer, { marker })
+                write!(f, "{} x {} = {}", self.x, self.y, answer)
             }
             None => {
-                write!(f, "{} x {} = ? ⤾", self.x, self.y)
+                write!(f, "{} x {} = ?", self.x, self.y)
             }
         }
     }
@@ -55,7 +70,7 @@ struct MultiplicationTable {
     correct: i32,
     wrong: i32,
     completed_tasks: Vec<MultiplicationTask>,
-    current_task: Option<(i32, i32)>,
+    current_task: Option<MultiplicationTask>,
 }
 
 impl Component for MultiplicationTable {
@@ -84,8 +99,7 @@ impl Component for MultiplicationTable {
                 true
             }
             MultiplicationTableMsg::Submit(answer) => {
-                if self.started {
-                    let (x, y) = self.current_task.unwrap();
+                if let Some(MultiplicationTask { x, y, answer: _ }) = self.current_task {
                     let task = MultiplicationTask { x, y, answer };
 
                     if task.correct() {
@@ -126,9 +140,9 @@ impl Component for MultiplicationTable {
         };
         html! {
             <>
-                <h3>{ format!("Multiplication: [{}✓ | {}✗ / {}]", self.correct, self.wrong, self.num_tasks) }</h3>
+                <h3>{ format!("Multiplication: [ {} ✓ ] [ {} ✗ ] / [ {} ]", self.correct, self.wrong, self.num_tasks) }</h3>
 
-                {if let Some((x, y)) = self.current_task {
+                {if let Some(MultiplicationTask{x, y, answer:_}) = self.current_task {
                     html!{
                         <h2> { format!("{} x {} = ?", x, y) } </h2>
                     }
@@ -150,10 +164,9 @@ impl Component for MultiplicationTable {
                 <ul>
                 { for self.completed_tasks.iter().map(|task| {
                     html! {
-                        <li> { task } </li>
+                        <li class={task.state()}> { task } </li>
                     }
-                })
-                }
+                })}
                 </ul>
 
             </>

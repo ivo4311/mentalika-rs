@@ -1,0 +1,27 @@
+$font-stack:    Roboto, sans-serif;
+$primary-color: #008f53;
+
+body {
+    font: 100% $font-stack;
+    color: white;
+    background-color: $primary-color;
+}
+
+.hidden {
+    display: none;
+}
+
+li.correct {
+    list-style-type: '✓';
+    padding-inline-start: 1ch;
+}
+
+li.wrong {
+    list-style-type: '✗';
+    padding-inline-start: 1ch;
+}
+
+li.skipped {
+    list-style-type: '⤾';
+    padding-inline-start: 1ch;
+}
