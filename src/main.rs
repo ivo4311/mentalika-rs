@@ -143,46 +143,41 @@ impl Component for MultiplicationTable {
             }
         };
         html! {
-            <div class="w3-card-4">
-                <div class="w3-container w3-green">
-                    <h2>{ format!("Multiplication: [ {} ✓ ] [ {} ✗ ] / [ {} ]", self.correct, self.wrong, self.num_tasks) }</h2>
-                </div>
+            <div class="w3-content w3-margin-top" style="max-width:800px;">
+                <header class="w3-container w3-theme w3-padding w3-center">
+                    <h2>{ format!("Multiplication Table: [ {} ✓ ] [ {} ✗ ] / [ {} ]", self.correct, self.wrong, self.num_tasks) }</h2>
+                </header>
 
-                <div class="w3-container">
-                    <div class="w3-cell-row w3-content" style="width:50%">
-                        <p>
-                        {
-                            if let Some(MultiplicationTask{x, y, answer:_}) = self.current_task {
+                <div class="w3-row-padding w3-center w3-margin">
+                    <div class="w3-card w3-container">
+
+                        {   if let Some(MultiplicationTask{x, y, answer:_}) = self.current_task {
                                 html!{
-                                    <h3 style="text-align:center"> { format!("{} x {} = ?", x, y) } </h3>
+                                    <>
+                                        <p><h3 style="text-align:center"> { format!("{} x {} = ?", x, y) } </h3></p>
+                                        <p><input placeholder="What is your answer?" class="w3-input" type="text" onkeypress={onpress}/></p>
+                                    </>
                                 }
                             } else {
                                 html!{}
-                            }
-                        }
-                        </p>
-                        <p>
-                            <input placeholder="What is your answer?" class="w3-input" type="text" onkeypress={onpress}/>
-                        </p>
+                            }}
+                        <ul class="w3-ul w3-padding">
+                            { for self.completed_tasks.iter().map(|task| {
+                                html! {
+                                    <li class={task.state()}> { task } </li>
+                                }
+                            })}
+                        </ul>
                     </div>
                 </div>
 
-
-                <footer class="w3-padding-large w3-border w3-gray">
-                    <div class="w3-cell-row w3-content" style="width:50%">
-                        <button class="w3-cell w3-button w3-green w3-round-large w3-block" onclick={link.callback(|_| MultiplicationTableMsg::Start )}>
+                <footer class="w3-padding w3-border w3-theme w3-center">
+                    <div class="w3-cell-row w3-content">
+                        <button class="w3-cell w3-button w3-green w3-round-large" onclick={link.callback(|_| MultiplicationTableMsg::Start )}>
                             { if self.started {"Stop"} else {"Start"}}
                         </button>
                     </div>
                 </footer>
-
-                <ul>
-                { for self.completed_tasks.iter().map(|task| {
-                    html! {
-                        <li class={task.state()}> { task } </li>
-                    }
-                })}
-                </ul>
 
             </div>
         }
