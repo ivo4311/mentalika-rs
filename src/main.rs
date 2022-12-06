@@ -91,11 +91,15 @@ impl Component for MultiplicationTable {
     fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             MultiplicationTableMsg::Start => {
-                self.started = true;
-                self.correct = 0;
-                self.wrong = 0;
-                self.completed_tasks.clear();
-                self.current_task = Some(MultiplicationTask::random());
+                self.started = !self.started;
+                if self.started {
+                    self.correct = 0;
+                    self.wrong = 0;
+                    self.completed_tasks.clear();
+                    self.current_task = Some(MultiplicationTask::random());
+                } else {
+                    self.current_task = None;
+                }
                 true
             }
             MultiplicationTableMsg::Submit(answer) => {
@@ -139,28 +143,39 @@ impl Component for MultiplicationTable {
             }
         };
         html! {
-            <>
-                <h3>{ format!("Multiplication: [ {} ✓ ] [ {} ✗ ] / [ {} ]", self.correct, self.wrong, self.num_tasks) }</h3>
+            <div class="w3-card-4">
+                <div class="w3-container w3-green">
+                    <h2>{ format!("Multiplication: [ {} ✓ ] [ {} ✗ ] / [ {} ]", self.correct, self.wrong, self.num_tasks) }</h2>
+                </div>
 
-                {if let Some(MultiplicationTask{x, y, answer:_}) = self.current_task {
-                    html!{
-                        <h2> { format!("{} x {} = ?", x, y) } </h2>
-                    }
-                } else {
-                    html!{}
-                }
-                }
+                <div class="w3-container">
+                    <div class="w3-cell-row w3-content" style="width:50%">
+                        <p>
+                        {
+                            if let Some(MultiplicationTask{x, y, answer:_}) = self.current_task {
+                                html!{
+                                    <h3 style="text-align:center"> { format!("{} x {} = ?", x, y) } </h3>
+                                }
+                            } else {
+                                html!{}
+                            }
+                        }
+                        </p>
+                        <p>
+                            <input placeholder="What is your answer?" class="w3-input" type="text" onkeypress={onpress}/>
+                        </p>
+                    </div>
+                </div>
 
 
-                <input onkeypress={onpress}/>
-                { if !self.started {
-                    html! {
-                        <button onclick={link.callback(|_| MultiplicationTableMsg::Start )}> { "Start" } </button>
-                    }
-                    } else {
-                        html!{}
-                    }
-                }
+                <footer class="w3-padding-large w3-border w3-gray">
+                    <div class="w3-cell-row w3-content" style="width:50%">
+                        <button class="w3-cell w3-button w3-green w3-round-large w3-block" onclick={link.callback(|_| MultiplicationTableMsg::Start )}>
+                            { if self.started {"Stop"} else {"Start"}}
+                        </button>
+                    </div>
+                </footer>
+
                 <ul>
                 { for self.completed_tasks.iter().map(|task| {
                     html! {
@@ -169,7 +184,7 @@ impl Component for MultiplicationTable {
                 })}
                 </ul>
 
-            </>
+            </div>
         }
     }
 }
