@@ -149,18 +149,19 @@ impl Component for MultiplicationTable {
                 </header>
 
                 <div class="w3-row-padding w3-center w3-margin">
-                    <div class="w3-card w3-container">
-
-                        {   if let Some(MultiplicationTask{x, y, answer:_}) = self.current_task {
+                    <div class="w3-card-4 w3-container">
+                        {
+                            if let Some(MultiplicationTask{x, y, answer:_}) = self.current_task {
                                 html!{
-                                    <>
-                                        <p><h3 style="text-align:center"> { format!("{} x {} = ?", x, y) } </h3></p>
+                                    <div class="w3-container w3-text-theme w3-center">
+                                        <p class="w3-xxxlarge"><b> { format!("{} x {} = ?", x, y) } </b></p>
                                         <p><input placeholder="What is your answer?" class="w3-input" type="text" onkeypress={onpress}/></p>
-                                    </>
+                                    </div>
                                 }
                             } else {
                                 html!{}
-                            }}
+                            }
+                        }
                         <ul class="w3-ul w3-padding">
                             { for self.completed_tasks.iter().map(|task| {
                                 html! {
@@ -173,7 +174,7 @@ impl Component for MultiplicationTable {
 
                 <footer class="w3-padding w3-border w3-theme w3-center">
                     <div class="w3-cell-row w3-content">
-                        <button class="w3-cell w3-button w3-green w3-round-large" onclick={link.callback(|_| MultiplicationTableMsg::Start )}>
+                        <button class="w3-cell w3-button w3-theme-action w3-round-large" onclick={link.callback(|_| MultiplicationTableMsg::Start )}>
                             { if self.started {"Stop"} else {"Start"}}
                         </button>
                     </div>
