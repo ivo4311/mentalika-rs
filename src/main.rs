@@ -1,5 +1,6 @@
 mod app;
 mod assignment;
+mod models;
 
 use app::App;
 

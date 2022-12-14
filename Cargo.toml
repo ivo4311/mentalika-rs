@@ -7,11 +7,16 @@ edition = "2021"
 
 [dependencies]
 yew = "0.19"
-rand = "0.8.5"
+rand = {version="0.8.5", features=["serde1"]}
 getrandom = { version = "0.2", features = ["js"] }
+gloo = "0.8"
+serde = "1"
+serde_derive = "1"
 
 [dependencies.web-sys]
 version = "0.3"
 features = [
 	"HtmlInputElement",
+	"Storage",
+    "Window",
 ]
