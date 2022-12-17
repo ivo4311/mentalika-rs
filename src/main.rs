@@ -1,9 +1,9 @@
 mod app;
-mod assignment;
-mod models;
+mod components;
+mod model;
 
 use app::App;
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }

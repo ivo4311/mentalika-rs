@@ -1,7 +1,97 @@
+use chrono::{Days, NaiveDate, Utc};
 use rand::{distributions::Uniform, Rng};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt::Display;
+use uuid::Uuid;
 use yew::{classes, Classes};
+
+use yewdux::prelude::*;
+
+#[derive(PartialEq, Serialize, Deserialize, Store)]
+// #[store(storage = "local")]
+pub struct State {
+    pub homework: Vec<Homework>,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        let today: NaiveDate = Utc::now().naive_utc().date();
+        let tomorrow = today.checked_add_days(Days::new(1)).unwrap();
+        let yesterday = today.checked_sub_days(Days::new(1)).unwrap();
+
+        let mut v = vec![
+            Homework {
+                id: Uuid::new_v4(),
+                due_date: today,
+                assignments: vec![MultiplicationAssignment::new()],
+            },
+            Homework {
+                id: Uuid::new_v4(),
+                due_date: tomorrow,
+                assignments: vec![MultiplicationAssignment::new()],
+            },
+            Homework {
+                id: Uuid::new_v4(),
+                due_date: yesterday,
+                assignments: vec![
+                    MultiplicationAssignment::new(),
+                    MultiplicationAssignment::new(),
+                    MultiplicationAssignment::new(),
+                ],
+            },
+        ];
+
+        v.sort();
+
+        Self { homework: v }
+    }
+}
+
+pub enum HomeworkTag {
+    DueToday,
+    PastDue,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Homework {
+    pub id: Uuid,
+    pub due_date: NaiveDate,
+    pub assignments: Vec<MultiplicationAssignment>,
+}
+
+impl PartialEq for Homework {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Homework {}
+
+impl Ord for Homework {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.due_date.cmp(&other.due_date)
+    }
+}
+
+impl Homework {
+    pub fn tags(&self) -> Option<HomeworkTag> {
+        match self.due_date.cmp(&Utc::now().date_naive()) {
+            std::cmp::Ordering::Less => Some(HomeworkTag::PastDue),
+            std::cmp::Ordering::Equal => Some(HomeworkTag::DueToday),
+            std::cmp::Ordering::Greater => None,
+        }
+    }
+
+    pub fn is_done(&self) -> bool {
+        self.assignments.iter().all(|a| a.is_done())
+    }
+}
+
+impl PartialOrd for Homework {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.due_date.partial_cmp(&other.due_date)
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub struct MultiplicationTask {
@@ -70,7 +160,7 @@ pub enum TaskState {
 impl Into<Classes> for TaskState {
     fn into(self) -> Classes {
         match self {
-            TaskState::Correct => classes!("fa", "fa-solid", "fa-check", "w3-green"),
+            TaskState::Correct => classes!("fa", "fa-solid", "fa-check", "w3-teal"),
             TaskState::Wrong => classes!("fa", "fa-solid", "fa-times", "w3-red"),
             TaskState::Skipped => classes!("fa", "fa-solid", "fa-share", "w3-grey"),
         }
@@ -79,6 +169,7 @@ impl Into<Classes> for TaskState {
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct MultiplicationAssignment {
+    id: Uuid,
     title: String,
     description: String,
     num_tasks: i32,
@@ -94,6 +185,7 @@ impl MultiplicationAssignment {
             yrange: Uniform::new(1, 10),
         };
         Self {
+            id: Uuid::new_v4(),
             title: "Умножение".to_owned(),
             description: "едноцифрено по едноцифрено".to_owned(),
             num_tasks,
@@ -123,15 +215,15 @@ impl MultiplicationAssignment {
     }
 
     pub fn title(&self) -> String {
-        let (correct, wrong) = self.score();
-        format!(
-            "Multiplication Table: [ {} ✓ ] [ {} ✗ ] / [ {} ]",
-            correct, wrong, self.num_tasks
-        )
+        self.title.clone()
     }
 
     pub fn description(&self) -> String {
-        format!("{} - {}", self.description, self.num_tasks)
+        let (correct, wrong) = self.score();
+        format!(
+            "{} - [ {} ✓ ] [ {} ✗ ] / [ {} ]",
+            self.description, correct, wrong, self.num_tasks
+        )
     }
 
     pub fn submit(&mut self, answer: Option<i32>) {
