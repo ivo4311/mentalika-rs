@@ -1,96 +1,120 @@
 use chrono::{Days, NaiveDate, Utc};
 use rand::{distributions::Uniform, Rng};
 use serde_derive::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::{collections::BTreeMap, fmt::Display, ops::Index};
 use uuid::Uuid;
 use yew::{classes, Classes};
 
 use yewdux::prelude::*;
 
-#[derive(PartialEq, Serialize, Deserialize, Store)]
+use crate::components::assignment;
+
+#[derive(Clone, Default, PartialEq, Serialize, Deserialize, Store)]
 // #[store(storage = "local")]
-pub struct State {
-    pub homework: Vec<Homework>,
+pub struct Homework {
+    pub homework: BTreeMap<NaiveDate, Vec<Uuid>>,
 }
 
-impl Default for State {
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
+// #[store(storage = "local")]
+pub struct Assignments {
+    assignments: Vec<MultiplicationAssignment>,
+}
+
+impl Store for Assignments {
+    fn new() -> Self {
+        init_listener(AssignmentsListener);
+        Self {
+            assignments: Vec::new(),
+        }
+    }
+
+    fn should_notify(&self, old: &Self) -> bool {
+        self != old
+    }
+}
+
+impl Assignments {
+    pub fn get(&self, id: Uuid) -> Option<&MultiplicationAssignment> {
+        return self.assignments.iter().find(|a| a.id == id);
+    }
+
+    pub fn push(&mut self, a: MultiplicationAssignment) {
+        self.assignments.push(a);
+    }
+
+    pub fn remove(&mut self, id: Uuid) {
+        let pos = self.assignments.iter().position(|a| a.id == id);
+        if let Some(pos) = pos {
+            self.assignments.remove(pos);
+        }
+    }
+
+    pub fn submit(&mut self, id: Uuid, answer: Option<i32>) {
+        let assignment = self.assignments.iter_mut().find(|a| a.id == id);
+        if let Some(assignment) = assignment {
+            assignment.submit(answer);
+        }
+    }
+
+    pub fn empty(&self) -> bool {
+        self.assignments.is_empty()
+    }
+
+    pub fn init(&mut self) {
+        let today: NaiveDate = Utc::now().naive_utc().date();
+        let tomorrow = today.checked_add_days(Days::new(1)).unwrap();
+        let yesterday = today.checked_sub_days(Days::new(1)).unwrap();
+
+        let v = vec![
+            MultiplicationAssignment::new_sd_sd(10, today.clone()),
+            MultiplicationAssignment::new_sd_sd(10, yesterday.clone()),
+            MultiplicationAssignment::new_sd_sd(11, tomorrow.clone()),
+            MultiplicationAssignment::new_sd_sd(11, yesterday.clone()),
+            MultiplicationAssignment::new_sd_sd(10, tomorrow.clone()),
+            MultiplicationAssignment::new_sd_sd(13, yesterday.clone()),
+        ];
+
+        self.assignments = v;
+    }
+}
+
+struct AssignmentsListener;
+impl Listener for AssignmentsListener {
+    type Store = Assignments;
+
+    fn on_change(&mut self, state: std::rc::Rc<Self::Store>) {
+        let mut map: BTreeMap<NaiveDate, Vec<Uuid>> = BTreeMap::new();
+        state.assignments.iter().for_each(|a| {
+            let due_date = a.due_date.clone();
+            let id = a.id.clone();
+            map.entry(due_date).or_default().push(id);
+        });
+        Dispatch::new().set(Homework { homework: map })
+    }
+}
+
+impl Default for Assignments {
     fn default() -> Self {
         let today: NaiveDate = Utc::now().naive_utc().date();
         let tomorrow = today.checked_add_days(Days::new(1)).unwrap();
         let yesterday = today.checked_sub_days(Days::new(1)).unwrap();
 
-        let mut v = vec![
-            Homework {
-                id: Uuid::new_v4(),
-                due_date: today,
-                assignments: vec![MultiplicationAssignment::new()],
-            },
-            Homework {
-                id: Uuid::new_v4(),
-                due_date: tomorrow,
-                assignments: vec![MultiplicationAssignment::new()],
-            },
-            Homework {
-                id: Uuid::new_v4(),
-                due_date: yesterday,
-                assignments: vec![
-                    MultiplicationAssignment::new(),
-                    MultiplicationAssignment::new(),
-                    MultiplicationAssignment::new(),
-                ],
-            },
+        let v = vec![
+            MultiplicationAssignment::new_sd_sd(10, today.clone()),
+            MultiplicationAssignment::new_sd_sd(10, yesterday.clone()),
+            MultiplicationAssignment::new_sd_sd(11, tomorrow.clone()),
+            MultiplicationAssignment::new_sd_sd(11, yesterday.clone()),
+            MultiplicationAssignment::new_sd_sd(10, tomorrow.clone()),
         ];
 
-        v.sort();
-
-        Self { homework: v }
+        Self { assignments: v }
     }
 }
 
 pub enum HomeworkTag {
     DueToday,
     PastDue,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Homework {
-    pub id: Uuid,
-    pub due_date: NaiveDate,
-    pub assignments: Vec<MultiplicationAssignment>,
-}
-
-impl PartialEq for Homework {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
-}
-
-impl Eq for Homework {}
-
-impl Ord for Homework {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.due_date.cmp(&other.due_date)
-    }
-}
-
-impl Homework {
-    pub fn tags(&self) -> Option<HomeworkTag> {
-        match self.due_date.cmp(&Utc::now().date_naive()) {
-            std::cmp::Ordering::Less => Some(HomeworkTag::PastDue),
-            std::cmp::Ordering::Equal => Some(HomeworkTag::DueToday),
-            std::cmp::Ordering::Greater => None,
-        }
-    }
-
-    pub fn is_done(&self) -> bool {
-        self.assignments.iter().all(|a| a.is_done())
-    }
-}
-
-impl PartialOrd for Homework {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.due_date.partial_cmp(&other.due_date)
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq)]
@@ -100,7 +124,7 @@ pub struct MultiplicationTask {
     pub answer: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, PartialEq)]
 pub struct MultiplicationTaskBuilder {
     xrange: Uniform<i32>,
     yrange: Uniform<i32>,
@@ -167,25 +191,27 @@ impl Into<Classes> for TaskState {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, PartialEq)]
 pub struct MultiplicationAssignment {
-    id: Uuid,
+    pub id: Uuid,
+    pub due_date: NaiveDate,
     title: String,
     description: String,
-    num_tasks: i32,
+    pub num_tasks: i32,
     pub tasks: Vec<MultiplicationTask>,
     next: Option<MultiplicationTask>,
     builder: MultiplicationTaskBuilder,
 }
 
 impl MultiplicationAssignment {
-    pub fn new_sd_sd(num_tasks: i32) -> Self {
+    pub fn new_sd_sd(num_tasks: i32, due_date: NaiveDate) -> Self {
         let builder = MultiplicationTaskBuilder {
             xrange: Uniform::new(1, 10),
             yrange: Uniform::new(1, 10),
         };
         Self {
             id: Uuid::new_v4(),
+            due_date,
             title: "Умножение".to_owned(),
             description: "едноцифрено по едноцифрено".to_owned(),
             num_tasks,
@@ -211,7 +237,7 @@ impl MultiplicationAssignment {
     // }
 
     pub fn new() -> Self {
-        Self::new_sd_sd(10)
+        Self::new_sd_sd(10, Utc::now().date_naive())
     }
 
     pub fn title(&self) -> String {

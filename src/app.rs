@@ -1,11 +1,21 @@
-use crate::components::free::FreePlayCard;
-use crate::components::homework::HomeworkCard;
-use crate::components::user::UserCard;
+// use crate::components::assignment::AssignmentDetails;
+// use crate::components::free::FreePlayCard;
+// use crate::components::homework::HomeworkCard;
+use crate::{
+    components::{free::FreePlayCard, homework::HomeworkCard, user::UserCard},
+    model::Assignments,
+};
 
 use yew::prelude::*;
+use yewdux::prelude::*;
 
 #[function_component]
 pub fn App() -> Html {
+    let (a, d) = use_store::<Assignments>();
+    if a.empty() {
+        d.reduce_mut(|a| a.init());
+    }
+
     html! {
         <>
         <div class="w3-content w3-margin-top" style="max-width: 1400px">

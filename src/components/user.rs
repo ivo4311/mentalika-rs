@@ -6,7 +6,7 @@ pub fn UserCard() -> Html {
         <div class="w3-white w3-text-grey w3-card-4">
             <UserAvatar/>
             <div class="w3-container">
-                <p><i class="fa fa-home fa-fw w3-margin-right w3-large w3-text-teal"></i>{"Sofia, Bulgaria"}</p>
+                <p><i class="fa fa-home fa-fw w3-margin-right w3-large w3-text-teal"></i>{"Център \"Менталика\", София, България"}</p>
                 <hr />
                 <UserSkills/>
                 <UserAchievements/>
@@ -34,15 +34,15 @@ fn UserSkills() -> Html {
         <p class="w3-large">
             <b><i class="fa fa-asterisk fa-fw w3-margin-right w3-text-teal"></i>{"Умения (TODO)"}</b>
         </p>
+        <p>{"Събиране и Изваждане"}</p>
+        <div class="w3-light-grey w3-round-xlarge w3-small">
+            <div class="w3-container w3-center w3-round-xlarge w3-teal" style="width: 100%">{"100%"}</div>
+        </div>
         <p>{"Умножение"}</p>
         <div class="w3-light-grey w3-round-xlarge w3-small">
             <div class="w3-container w3-center w3-round-xlarge w3-teal" style="width: 100%">{"100%"}</div>
         </div>
         <p>{"Деление"}</p>
-        <div class="w3-light-grey w3-round-xlarge w3-small">
-            <div class="w3-container w3-center w3-round-xlarge w3-teal" style="width: 100%">{"100%"}</div>
-        </div>
-        <p>{"Събиране и Изваждане"}</p>
         <div class="w3-light-grey w3-round-xlarge w3-small">
             <div class="w3-container w3-center w3-round-xlarge w3-teal" style="width: 100%">{"100%"}</div>
         </div>
