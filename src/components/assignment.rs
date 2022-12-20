@@ -71,7 +71,6 @@ pub struct AssignmentDetailsProps {
 pub fn AssignmentCard(AssignmentDetailsProps { assignment }: &AssignmentDetailsProps) -> Html {
     let (state, _dispatch) = use_store::<Assignments>();
     let assignment = state.get(*assignment);
-
     html! {
         <div class="w3-container w3-card w3-white w3-margin-bottom w3-padding">
             if let Some(ref assignment) = assignment {
@@ -79,21 +78,20 @@ pub fn AssignmentCard(AssignmentDetailsProps { assignment }: &AssignmentDetailsP
                 <i class="fa fa-solid fa-calculator fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>
                     {assignment.title()}
                 </h2>
-                // TODO! Assignment Progress Bar
-                <div class="w3-grey w3-text-white w3-round-xlarge w3-display-container" style="height: 24px">
-                    <div class="w3-display-middle">{"50 / 100"}</div>
-                    <div class="w3-container w3-center w3-round-xlarge w3-teal" style="height: 24px; width: 50%"></div>
-                </div>
-
 
                 <div class="w3-container">
                     if let Some(task) = assignment.next() {
                         <TaskView assignment_id={assignment.id} {task}/>
                     }
+                    if let progress = assignment.progress() {
+                        <div class="w3-grey w3-text-white w3-round w3-display-container" style="height: 20px">
+                            <div class="w3-display-middle">{format!("{}/{}", progress.correct, progress.total)}</div>
+                            <div class="w3-round w3-teal" style={format!{"height: 20px; width: {}%", progress.percent_done}}></div>
+                        </div>
+                    }
                     <TaskList tasks={assignment.tasks.clone()}/>
 
                 </div>
-
                 <hr/>
             } else {
                 <h2 class="w3-text-grey w3-padding-16">

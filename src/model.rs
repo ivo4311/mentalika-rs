@@ -263,4 +263,41 @@ impl MultiplicationAssignment {
         let wrong = self.tasks.iter().filter(|t| !t.correct()).count() as i32;
         (correct, wrong)
     }
+
+    pub fn progress(&self) -> Progress {
+        let mut correct = 0;
+        let mut wrong = 0;
+        let mut skipped = 0;
+
+        self.tasks.iter().for_each(|t| {
+            match t.answer {
+                Some(_) => {
+                    if t.correct() {
+                        correct += 1;
+                    } else {
+                        wrong += 1;
+                    }
+                }
+                None => {
+                    skipped += 1;
+                }
+            };
+        });
+        let percent_done = (correct as f32 * 100.0 / self.num_tasks as f32).round() as i32;
+        Progress {
+            total: self.num_tasks,
+            correct,
+            wrong,
+            skipped,
+            percent_done,
+        }
+    }
+}
+
+pub struct Progress {
+    pub total: i32,
+    pub correct: i32,
+    pub wrong: i32,
+    pub skipped: i32,
+    pub percent_done: i32,
 }
