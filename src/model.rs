@@ -5,11 +5,40 @@ use std::{collections::BTreeMap, fmt::Display};
 use uuid::Uuid;
 use yew::{html, Html};
 
-use yewdux::prelude::*;
+use yewdux::{prelude::*, storage};
 
-#[derive(Clone, Default, PartialEq, Serialize, Deserialize, Store)]
+#[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Homework {
     pub homework: BTreeMap<NaiveDate, Vec<Uuid>>,
+}
+
+impl Store for Homework {
+    fn new() -> Self {
+        let assignments = match storage::load::<Assignments>(storage::Area::Local) {
+            Ok(assignments) => assignments.unwrap_or_default(),
+            Err(err) => {
+                log::error!("failed to load Assignments {}", err);
+                Default::default()
+            }
+        };
+        assignments.assignments.clone().into()
+    }
+
+    fn should_notify(&self, old: &Self) -> bool {
+        self != old
+    }
+}
+
+impl From<Vec<MultiplicationAssignment>> for Homework {
+    fn from(assignments: Vec<MultiplicationAssignment>) -> Self {
+        let mut map: BTreeMap<NaiveDate, Vec<Uuid>> = BTreeMap::new();
+        assignments.iter().for_each(|a| {
+            let due_date = a.due_date.clone();
+            let id = a.id.clone();
+            map.entry(due_date).or_default().push(id);
+        });
+        Self { homework: map }
+    }
 }
 
 #[derive(Default, Clone, PartialEq, Serialize, Deserialize)]
@@ -20,8 +49,12 @@ pub struct Assignments {
 impl Store for Assignments {
     fn new() -> Self {
         init_listener(AssignmentsListener);
-        Self {
-            assignments: Vec::new(),
+        match storage::load::<Assignments>(storage::Area::Local) {
+            Ok(assignments) => assignments.unwrap_or_default(),
+            Err(err) => {
+                log::error!("failed to load Assignments {}", err);
+                Default::default()
+            }
         }
     }
 
@@ -81,13 +114,11 @@ impl Listener for AssignmentsListener {
     type Store = Assignments;
 
     fn on_change(&mut self, state: std::rc::Rc<Self::Store>) {
-        let mut map: BTreeMap<NaiveDate, Vec<Uuid>> = BTreeMap::new();
-        state.assignments.iter().for_each(|a| {
-            let due_date = a.due_date.clone();
-            let id = a.id.clone();
-            map.entry(due_date).or_default().push(id);
-        });
-        Dispatch::new().set(Homework { homework: map })
+        if let Err(err) = storage::save(state.as_ref(), storage::Area::Local) {
+            log::error!("failed to save Assignments to local storage: {}", err);
+        }
+        let homework: Homework = state.assignments.clone().into();
+        Dispatch::new().set(homework);
     }
 }
 
@@ -157,13 +188,7 @@ pub enum TaskState {
 
 impl TaskState {
     pub fn icon(&self) -> Html {
-        self.into()
-    }
-}
-
-impl From<&TaskState> for Html {
-    fn from(state: &TaskState) -> Self {
-        match state {
+        match self {
             TaskState::Correct => {
                 html! {<i class="w3-bar-item w3-round fa fa-solid fa-circle-check w3-teal"></i>}
             }
