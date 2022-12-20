@@ -2,36 +2,64 @@
 // use crate::components::free::FreePlayCard;
 // use crate::components::homework::HomeworkCard;
 use crate::{
-    components::{free::FreePlayCard, homework::HomeworkCard, user::UserCard},
+    components::{
+        assignment::AssignmentCard, free::FreePlayCard, homework::HomeworkCard, user::UserCard,
+    },
     model::Assignments,
 };
 
+use uuid::Uuid;
 use yew::prelude::*;
+use yew_router::prelude::*;
 use yewdux::prelude::*;
+
+#[derive(Clone, PartialEq, Routable)]
+pub enum Route {
+    #[not_found]
+    #[at("/")]
+    Home,
+    #[at("/assignment/:id")]
+    Assignment { id: Uuid },
+}
+
+fn switch(routes: Route) -> Html {
+    match routes {
+        Route::Home => html! {
+            <div class="w3-twothird">
+                <HomeworkCard/>
+                <FreePlayCard/>
+            </div>
+        },
+        Route::Assignment { id } => html! {
+            <div class="w3-twothird">
+                <AssignmentCard assignment={id}/>
+            </div>
+        },
+    }
+}
 
 #[function_component]
 pub fn App() -> Html {
     let (a, d) = use_store::<Assignments>();
     if a.empty() {
-        d.reduce_mut(|a| a.init());
+        d.reduce_mut(|a| a.fill());
     }
 
     html! {
-        <>
+        <BrowserRouter>
         <div class="w3-content w3-margin-top" style="max-width: 1400px">
             <div class="w3-row-padding">
                 <div class="w3-third">
                     <UserCard/>
                 </div>
                 <div class="w3-twothird">
-                    <HomeworkCard/>
-                    <FreePlayCard/>
+                    <Switch<Route> render={switch} />
                 </div>
             </div>
         </div>
         <footer class="w3-container w3-teal w3-center w3-margin-top">
             <p>{"Powered by "}<a href="https://www.w3schools.com/w3css/default.asp" target="_blank">{"w3.css"}</a></p>
         </footer>
-        </>
+        </BrowserRouter>
     }
 }

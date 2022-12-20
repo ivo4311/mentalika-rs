@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use chrono::{NaiveDate, Utc};
+use chrono::Utc;
 use yew::prelude::*;
 use yewdux::prelude::*;
 

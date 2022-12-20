@@ -1,8 +1,12 @@
 use uuid::Uuid;
 use yew::prelude::*;
+use yew_router::prelude::*;
 use yewdux::prelude::*;
 
-use crate::model::{Assignments, MultiplicationAssignment, MultiplicationTask};
+use crate::{
+    app::Route,
+    model::{Assignments, MultiplicationTask},
+};
 
 #[derive(Properties, PartialEq)]
 pub struct AssignmentListProps {
@@ -17,7 +21,8 @@ pub fn AssignmentList(
         assignments,
     }: &AssignmentListProps,
 ) -> Html {
-    let (state, dispatch) = use_store::<Assignments>();
+    let (state, _dispatch) = use_store::<Assignments>();
+    let navigator = use_navigator().unwrap();
 
     let hoverable = if *active {
         classes!("w3-hoverable")
@@ -28,11 +33,20 @@ pub fn AssignmentList(
         <ul class={classes!("w3-ul", "w3-margin-left", hoverable)}>
         {
             for assignments.iter().map(|id| {
-                let assignment = state.get(id.clone());
+                let id = id.clone();
+                let assignment = state.get(id);
+                let navigator = navigator.clone();
+                let onclick = if *active {
+                    Callback::from(move |_| {
+                        navigator.push(&Route::Assignment { id: id });
+                    })
+                } else{
+                    Callback::from(move |_| {})
+                };
                 html!{
                     if let Some(assignment) = assignment {
-                        <li class="w3-row">
-                            <div class="w3-cell w3-cell-middle w3-round w3-teal w3-padding">
+                        <li class="w3-row" {onclick}>
+                            <div class="w3-cell w3-cell-middle w3-round w3-teal w3-padding" >
                                 <i class="fa fa-solid fa-calculator w3-xlarge"></i>
                             </div>
                             <div class="w3-cell w3-padding">
@@ -48,72 +62,109 @@ pub fn AssignmentList(
     }
 }
 
-// #[derive(PartialEq, Properties)]
-// pub struct AssignmentDetailsProps {
-//     pub assignment: Uuid,
-// }
+#[derive(PartialEq, Properties)]
+pub struct AssignmentDetailsProps {
+    pub assignment: Uuid,
+}
 
-// #[function_component]
-// pub fn AssignmentDetails(AssignmentDetailsProps { assignment }: &AssignmentDetailsProps) -> Html {
-//     let (state, dispatch) = use_store::<State>();
+#[function_component]
+pub fn AssignmentCard(AssignmentDetailsProps { assignment }: &AssignmentDetailsProps) -> Html {
+    let (state, _dispatch) = use_store::<Assignments>();
+    let assignment = state.get(*assignment);
 
-//     let on_submit = dispatch.reduce_mut_callback_with(move |s, e: KeyboardEvent| {
-//         if e.key() == "Enter" {
-//             let input: web_sys::HtmlInputElement = e.target_unchecked_into();
-//             let answer = match input.value().parse::<i32>() {
-//                 Ok(answer) => Some(answer),
-//                 Err(_) => None,
-//             };
-//             input.set_value("");
-//         };
-//     });
+    html! {
+        <div class="w3-container w3-card w3-white w3-margin-bottom w3-padding">
+            if let Some(ref assignment) = assignment {
+                <h2 class="w3-text-grey w3-padding-16">
+                <i class="fa fa-solid fa-calculator fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>
+                    {assignment.title()}
+                </h2>
+                // TODO! Assignment Progress Bar
+                <div class="w3-grey w3-text-white w3-round-xlarge w3-display-container" style="height: 24px">
+                    <div class="w3-display-middle">{"50 / 100"}</div>
+                    <div class="w3-container w3-center w3-round-xlarge w3-teal" style="height: 24px; width: 50%"></div>
+                </div>
 
-//     let task_view = if let Some(ref assignment) = assignment {
-//         assignment.next().as_ref().map(|task| {
-//             html! {
-// <div class="w3-container w3-text-theme w3-center">
-//     <p class="w3-xxxlarge"><b> { task } </b></p>
-//     <p><input placeholder="What is your answer?" class="w3-input" type="text" onkeypress={on_submit}/></p>
-// </div>
-//             }
-//         })
-//     } else {
-//         None
-//     };
 
-//     html! {
-//         <div class="w3-container w3-card w3-white w3-margin-bottom w3-padding">
-//             <h2 class="w3-text-grey w3-padding-16">
-//                 <i class="fa fa-suitcase fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>
-//                 if let Some(ref assignment) = assignment {{assignment.title()}}
-//             </h2>
-//             <p>if let Some(ref assignment) = assignment {{assignment.description()}}</p>
+                <div class="w3-container">
+                    if let Some(task) = assignment.next() {
+                        <TaskView assignment_id={assignment.id} {task}/>
+                    }
+                    <TaskList tasks={assignment.tasks.clone()}/>
 
-//             {for task_view}
+                </div>
 
-//             <hr/>
-//             if let Some(ref assignment) = assignment{<TaskList tasks={assignment.tasks.clone()} />}
-//         </div>
-//     }
-// }
+                <hr/>
+            } else {
+                <h2 class="w3-text-grey w3-padding-16">
+                <i class="fa fa-solid fa-calculator fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>
+                    {"Ooops!?"}
+                </h2>
+                <p>{"Assignment not found!"}</p> // TODO add back button
+            }
+        </div>
+    }
+}
 
-// #[derive(Properties, PartialEq)]
-// pub struct TaskListProps {
-//     tasks: Vec<MultiplicationTask>,
-// }
+#[derive(PartialEq, Properties)]
+struct TaskViewProps {
+    assignment_id: Uuid,
+    task: MultiplicationTask,
+}
 
-// #[function_component]
-// pub fn TaskList(TaskListProps { tasks }: &TaskListProps) -> Html {
-//     html! {
-// <ul class="w3-ul">
-//     { for tasks.iter().rev().map(|task| {
-//         html! {
-//             <li class="w3-bar">
-//                 <i class={classes!("w3-bar-item", "w3-round-large", task.state())}></i>
-//                 <div class="w3-bar-item w3-center">{ task }</div>
-//             </li>
-//         }
-//     })}
-// </ul>
-//     }
-// }
+#[function_component]
+fn TaskView(
+    TaskViewProps {
+        assignment_id,
+        task,
+    }: &TaskViewProps,
+) -> Html {
+    let (_, dispatch) = use_store::<Assignments>();
+    let onkeypress = {
+        let id = assignment_id.clone();
+        dispatch.reduce_mut_callback_with(move |s, e: KeyboardEvent| {
+            if e.key() == "Enter" {
+                let input: web_sys::HtmlInputElement = e.target_unchecked_into();
+                let answer = match input.value().parse::<i32>() {
+                    Ok(answer) => Some(answer),
+                    Err(_) => None,
+                };
+                input.set_value("");
+                s.submit(id, answer);
+            };
+        })
+    };
+
+    html! {
+        <div class="w3-container w3-text-teal w3-center w3-content w3-margin-right w3-margin-left">
+            <p class="w3-jumbo"><b>{task}</b></p>
+            <p><input placeholder="Колко получи?" class="w3-input" type="text" {onkeypress}/></p>
+        </div>
+    }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct TaskListProps {
+    tasks: Vec<MultiplicationTask>,
+}
+
+#[function_component]
+pub fn TaskList(TaskListProps { tasks }: &TaskListProps) -> Html {
+    html! {
+        <ul class="w3-ul">
+            { for tasks.iter().rev().enumerate().map(|(i, task)| {
+                let effects = if i ==0 {
+                    classes!("w3-animate-right")
+                } else {
+                    classes!()
+                };
+                html! {
+                    <li class={classes!("w3-bar", effects)}>
+                        {task.state().icon()}
+                        <div class="w3-bar-item w3-center">{ task }</div>
+                    </li>
+                }
+            })}
+        </ul>
+    }
+}

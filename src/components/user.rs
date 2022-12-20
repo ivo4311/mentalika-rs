@@ -19,7 +19,7 @@ pub fn UserCard() -> Html {
 fn UserAvatar() -> Html {
     html! {
         <div class="w3-display-container">
-            <img src="img/mishe.jpg" style="width: 100%" alt="Avatar" />
+            <img src="/img/mishe.jpg" style="width: 100%" alt="Avatar" />
             <div class="w3-display-bottomleft w3-container w3-text-black">
                 <h2>{"Менталика мише?"}</h2>
             </div>

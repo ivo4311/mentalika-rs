@@ -1,22 +1,18 @@
 use chrono::{Days, NaiveDate, Utc};
 use rand::{distributions::Uniform, Rng};
 use serde_derive::{Deserialize, Serialize};
-use std::{collections::BTreeMap, fmt::Display, ops::Index};
+use std::{collections::BTreeMap, fmt::Display};
 use uuid::Uuid;
-use yew::{classes, Classes};
+use yew::{html, Html};
 
 use yewdux::prelude::*;
 
-use crate::components::assignment;
-
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize, Store)]
-// #[store(storage = "local")]
 pub struct Homework {
     pub homework: BTreeMap<NaiveDate, Vec<Uuid>>,
 }
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
-// #[store(storage = "local")]
+#[derive(Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Assignments {
     assignments: Vec<MultiplicationAssignment>,
 }
@@ -43,12 +39,12 @@ impl Assignments {
         self.assignments.push(a);
     }
 
-    pub fn remove(&mut self, id: Uuid) {
-        let pos = self.assignments.iter().position(|a| a.id == id);
-        if let Some(pos) = pos {
-            self.assignments.remove(pos);
-        }
-    }
+    // pub fn remove(&mut self, id: Uuid) {
+    //     let pos = self.assignments.iter().position(|a| a.id == id);
+    //     if let Some(pos) = pos {
+    //         self.assignments.remove(pos);
+    //     }
+    // }
 
     pub fn submit(&mut self, id: Uuid, answer: Option<i32>) {
         let assignment = self.assignments.iter_mut().find(|a| a.id == id);
@@ -61,21 +57,22 @@ impl Assignments {
         self.assignments.is_empty()
     }
 
-    pub fn init(&mut self) {
+    pub fn fill(&mut self) {
         let today: NaiveDate = Utc::now().naive_utc().date();
-        let tomorrow = today.checked_add_days(Days::new(1)).unwrap();
-        let yesterday = today.checked_sub_days(Days::new(1)).unwrap();
+        let latest = self
+            .assignments
+            .iter()
+            .max_by(|a1, a2| a1.due_date.cmp(&a2.due_date));
 
-        let v = vec![
-            MultiplicationAssignment::new_sd_sd(10, today.clone()),
-            MultiplicationAssignment::new_sd_sd(10, yesterday.clone()),
-            MultiplicationAssignment::new_sd_sd(11, tomorrow.clone()),
-            MultiplicationAssignment::new_sd_sd(11, yesterday.clone()),
-            MultiplicationAssignment::new_sd_sd(10, tomorrow.clone()),
-            MultiplicationAssignment::new_sd_sd(13, yesterday.clone()),
-        ];
-
-        self.assignments = v;
+        if let Some(assignment) = latest {
+            let mut next = assignment.due_date.checked_add_days(Days::new(1)).unwrap();
+            while next < today {
+                self.push(MultiplicationAssignment::new_sd_sd(100, next));
+                next = next.checked_add_days(Days::new(1)).unwrap();
+            }
+        } else {
+            self.push(MultiplicationAssignment::new_sd_sd(100, today));
+        }
     }
 }
 
@@ -92,29 +89,6 @@ impl Listener for AssignmentsListener {
         });
         Dispatch::new().set(Homework { homework: map })
     }
-}
-
-impl Default for Assignments {
-    fn default() -> Self {
-        let today: NaiveDate = Utc::now().naive_utc().date();
-        let tomorrow = today.checked_add_days(Days::new(1)).unwrap();
-        let yesterday = today.checked_sub_days(Days::new(1)).unwrap();
-
-        let v = vec![
-            MultiplicationAssignment::new_sd_sd(10, today.clone()),
-            MultiplicationAssignment::new_sd_sd(10, yesterday.clone()),
-            MultiplicationAssignment::new_sd_sd(11, tomorrow.clone()),
-            MultiplicationAssignment::new_sd_sd(11, yesterday.clone()),
-            MultiplicationAssignment::new_sd_sd(10, tomorrow.clone()),
-        ];
-
-        Self { assignments: v }
-    }
-}
-
-pub enum HomeworkTag {
-    DueToday,
-    PastDue,
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq)]
@@ -181,12 +155,24 @@ pub enum TaskState {
     Skipped,
 }
 
-impl Into<Classes> for TaskState {
-    fn into(self) -> Classes {
-        match self {
-            TaskState::Correct => classes!("fa", "fa-solid", "fa-check", "w3-teal"),
-            TaskState::Wrong => classes!("fa", "fa-solid", "fa-times", "w3-red"),
-            TaskState::Skipped => classes!("fa", "fa-solid", "fa-share", "w3-grey"),
+impl TaskState {
+    pub fn icon(&self) -> Html {
+        self.into()
+    }
+}
+
+impl From<&TaskState> for Html {
+    fn from(state: &TaskState) -> Self {
+        match state {
+            TaskState::Correct => {
+                html! {<i class="w3-bar-item w3-round fa fa-solid fa-circle-check w3-teal"></i>}
+            }
+            TaskState::Wrong => {
+                html! {<i class="w3-bar-item w3-round fa fa-solid fa-circle-xmark w3-red"></i>}
+            }
+            TaskState::Skipped => {
+                html! {<i class="w3-bar-item w3-round fa fa-solid fa-share w3-gray"></i>}
+            }
         }
     }
 }
@@ -236,9 +222,9 @@ impl MultiplicationAssignment {
     //     }
     // }
 
-    pub fn new() -> Self {
-        Self::new_sd_sd(10, Utc::now().date_naive())
-    }
+    // pub fn new() -> Self {
+    //     Self::new_sd_sd(10, Utc::now().date_naive())
+    // }
 
     pub fn title(&self) -> String {
         self.title.clone()
