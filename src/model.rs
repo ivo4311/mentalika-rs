@@ -49,13 +49,15 @@ pub struct Assignments {
 impl Store for Assignments {
     fn new() -> Self {
         init_listener(AssignmentsListener);
-        match storage::load::<Assignments>(storage::Area::Local) {
+        let mut state = match storage::load::<Assignments>(storage::Area::Local) {
             Ok(assignments) => assignments.unwrap_or_default(),
             Err(err) => {
                 log::error!("failed to load Assignments {}", err);
                 Default::default()
             }
-        }
+        };
+        state.fill();
+        state
     }
 
     fn should_notify(&self, old: &Self) -> bool {
@@ -86,10 +88,6 @@ impl Assignments {
         }
     }
 
-    pub fn empty(&self) -> bool {
-        self.assignments.is_empty()
-    }
-
     pub fn fill(&mut self) {
         let today: NaiveDate = Utc::now().naive_utc().date();
         let latest = self
@@ -99,7 +97,7 @@ impl Assignments {
 
         if let Some(assignment) = latest {
             let mut next = assignment.due_date.checked_add_days(Days::new(1)).unwrap();
-            while next < today {
+            while next <= today {
                 self.push(MultiplicationAssignment::new_sd_sd(100, next));
                 next = next.checked_add_days(Days::new(1)).unwrap();
             }
