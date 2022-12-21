@@ -32,7 +32,7 @@ impl Store for Homework {
 impl From<Vec<MultiplicationAssignment>> for Homework {
     fn from(assignments: Vec<MultiplicationAssignment>) -> Self {
         let mut map: BTreeMap<NaiveDate, Vec<Uuid>> = BTreeMap::new();
-        assignments.iter().for_each(|a| {
+        assignments.iter().filter(|a| !a.is_done()).for_each(|a| {
             let due_date = a.due_date.clone();
             let id = a.id.clone();
             map.entry(due_date).or_default().push(id);
