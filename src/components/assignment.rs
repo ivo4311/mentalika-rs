@@ -70,6 +70,7 @@ pub struct AssignmentDetailsProps {
 #[function_component]
 pub fn AssignmentCard(AssignmentDetailsProps { assignment }: &AssignmentDetailsProps) -> Html {
     let (state, _dispatch) = use_store::<Assignments>();
+    let navigator = use_navigator().unwrap();
     let assignment = state.get(*assignment);
     html! {
         <div class="w3-container w3-card w3-white w3-margin-bottom w3-padding">
@@ -80,17 +81,19 @@ pub fn AssignmentCard(AssignmentDetailsProps { assignment }: &AssignmentDetailsP
                 </h2>
 
                 <div class="w3-container">
+                    // TaskView renders the current task if the assignment is not completed
                     if let Some(task) = assignment.next() {
                         <TaskView assignment_id={assignment.id} {task}/>
                     }
+                    // Renders the progress bar for the assignment. TODO: make it hidden when the assignment is completed
                     if let progress = assignment.progress() {
                         <div class="w3-grey w3-text-white w3-round w3-display-container" style="height: 20px">
                             <div class="w3-display-middle">{format!("{}/{}", progress.correct, progress.total)}</div>
                             <div class="w3-round w3-teal" style={format!{"height: 20px; width: {}%", progress.percent_done}}></div>
                         </div>
                     }
+                    // TaskList renders the tasks that have been completed in the assignment
                     <TaskList tasks={assignment.tasks.clone()}/>
-
                 </div>
                 <hr/>
             } else {
@@ -98,7 +101,8 @@ pub fn AssignmentCard(AssignmentDetailsProps { assignment }: &AssignmentDetailsP
                 <i class="fa fa-solid fa-calculator fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>
                     {"Ooops!?"}
                 </h2>
-                <p>{"Assignment not found!"}</p> // TODO add back button
+                <p>{"Такова домашно няма!"}</p>
+                <button class="w3-button w3-round w3-teal" onclick={Callback::from(move|_|navigator.push(&Route::Home))}>{"Go Back"}</button>
             }
         </div>
     }
