@@ -81,12 +81,14 @@ pub fn AssignmentCard(AssignmentDetailsProps { assignment }: &AssignmentDetailsP
                 </h2>
 
                 <div class="w3-container">
-                    // TaskView renders the current task if the assignment is not completed
                     if let Some(task) = assignment.next() {
-                        <TaskView assignment_id={assignment.id} {task}/>
+                        <div class="w3-display-container w3-center">
+                            // ProgressView Renders the progress bar for the assignment.
+                            <ProgressView progress={assignment.progress()}/>
+                            // TaskView renders the current task if the assignment is not completed
+                            <TaskView assignment_id={assignment.id} {task}/>
+                        </div>
                     }
-                    // ProgressView Renders the progress bar for the assignment.
-                    <ProgressView progress={assignment.progress()}/>
                     // TaskList renders the tasks that have been completed in the assignment
                     <TaskList tasks={assignment.tasks.clone()}/>
                 </div>
@@ -112,9 +114,9 @@ struct ProgressViewProps {
 fn ProgressView(ProgressViewProps { progress }: &ProgressViewProps) -> Html {
     if progress.correct < progress.total {
         html! {
-            <div class="w3-grey w3-text-white w3-round w3-display-container" style="height: 20px">
-                <div class="w3-display-middle">{format!("{}/{}", progress.correct, progress.total)}</div>
-                <div class="w3-round w3-teal" style={format!{"height: 20px; width: {}%", progress.percent_done}}></div>
+            <div class="w3-display-topright w3-bar w3-light-gray w3-round-large">
+                <i class="w3-bar-item w3-round fa fa-solid fa-circle-check w3-teal w3-margin">{format!(" {}", progress.correct)}</i>
+                <i class="w3-bar-item w3-round fa fa-solid fa-circle-xmark w3-red w3-margin-right w3-margin-top">{format!(" {}", progress.wrong)}</i>
             </div>
         }
     } else {
