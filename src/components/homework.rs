@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
-use chrono::Utc;
+use chrono::format::{DelayedFormat, StrftimeItems};
+use chrono::{Locale, Utc};
 use yew::prelude::*;
 use yewdux::prelude::*;
 
@@ -39,7 +40,7 @@ fn HomeworkList() -> Html {
                         <h6 class="w3-text-teal">
                             <i class="fa fa-calendar fa-fw w3-margin-right"></i>
                             {tag}
-                            {due_date}
+                            {DelayedFormat::new_with_locale(Some(*due_date), None, StrftimeItems::new("%d %B %Y"), Locale::bg_BG)}
                         </h6>
                         <AssignmentList {active} {assignments} />
                         <hr />

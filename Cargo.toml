@@ -12,7 +12,7 @@ rand = {version="0.8.5", features=["serde1"]}
 getrandom = { version = "0.2", features = ["js"] }
 serde = "1"
 serde_derive = "1"
-chrono = {version="0.4", features = ["serde"]}
+chrono = {version="0.4", features = ["serde", "unstable-locales"]}
 log = "0.4.6"
 wasm-logger = "0.2.0"
 
