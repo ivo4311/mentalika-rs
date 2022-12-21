@@ -1,17 +1,13 @@
 // use crate::components::assignment::AssignmentDetails;
 // use crate::components::free::FreePlayCard;
 // use crate::components::homework::HomeworkCard;
-use crate::{
-    components::{
-        assignment::AssignmentCard, free::FreePlayCard, homework::HomeworkCard, user::UserCard,
-    },
-    model::Assignments,
+use crate::components::{
+    assignment::AssignmentCard, free::FreePlayCard, homework::HomeworkCard, user::UserCard,
 };
 
 use uuid::Uuid;
 use yew::prelude::*;
 use yew_router::prelude::*;
-use yewdux::prelude::*;
 
 #[derive(Clone, PartialEq, Routable)]
 pub enum Route {

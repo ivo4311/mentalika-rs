@@ -5,7 +5,7 @@ use yewdux::prelude::*;
 
 use crate::{
     app::Route,
-    model::{Assignments, MultiplicationTask},
+    model::{Assignments, MultiplicationTask, Progress},
 };
 
 #[derive(Properties, PartialEq)]
@@ -85,13 +85,8 @@ pub fn AssignmentCard(AssignmentDetailsProps { assignment }: &AssignmentDetailsP
                     if let Some(task) = assignment.next() {
                         <TaskView assignment_id={assignment.id} {task}/>
                     }
-                    // Renders the progress bar for the assignment. TODO: make it hidden when the assignment is completed
-                    if let progress = assignment.progress() {
-                        <div class="w3-grey w3-text-white w3-round w3-display-container" style="height: 20px">
-                            <div class="w3-display-middle">{format!("{}/{}", progress.correct, progress.total)}</div>
-                            <div class="w3-round w3-teal" style={format!{"height: 20px; width: {}%", progress.percent_done}}></div>
-                        </div>
-                    }
+                    // ProgressView Renders the progress bar for the assignment.
+                    <ProgressView progress={assignment.progress()}/>
                     // TaskList renders the tasks that have been completed in the assignment
                     <TaskList tasks={assignment.tasks.clone()}/>
                 </div>
@@ -105,6 +100,25 @@ pub fn AssignmentCard(AssignmentDetailsProps { assignment }: &AssignmentDetailsP
                 <button class="w3-button w3-round w3-teal" onclick={Callback::from(move|_|navigator.push(&Route::Home))}>{"Go Back"}</button>
             }
         </div>
+    }
+}
+
+#[derive(PartialEq, Properties)]
+struct ProgressViewProps {
+    progress: Progress,
+}
+
+#[function_component]
+fn ProgressView(ProgressViewProps { progress }: &ProgressViewProps) -> Html {
+    if progress.correct < progress.total {
+        html! {
+            <div class="w3-grey w3-text-white w3-round w3-display-container" style="height: 20px">
+                <div class="w3-display-middle">{format!("{}/{}", progress.correct, progress.total)}</div>
+                <div class="w3-round w3-teal" style={format!{"height: 20px; width: {}%", progress.percent_done}}></div>
+            </div>
+        }
+    } else {
+        html! {}
     }
 }
 

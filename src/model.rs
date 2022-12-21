@@ -317,6 +317,7 @@ impl MultiplicationAssignment {
     }
 }
 
+#[derive(PartialEq)]
 pub struct Progress {
     pub total: i32,
     pub correct: i32,
