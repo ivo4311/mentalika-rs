@@ -17,7 +17,7 @@ impl Store for Homework {
         let assignments = match storage::load::<Assignments>(storage::Area::Local) {
             Ok(assignments) => assignments.unwrap_or_default(),
             Err(err) => {
-                log::error!("failed to load Assignments {}", err);
+                log::info!("failed to load Assignments {}", err);
                 Default::default()
             }
         };
@@ -49,15 +49,13 @@ pub struct Assignments {
 impl Store for Assignments {
     fn new() -> Self {
         init_listener(AssignmentsListener);
-        let mut state = match storage::load::<Assignments>(storage::Area::Local) {
+        match storage::load::<Assignments>(storage::Area::Local) {
             Ok(assignments) => assignments.unwrap_or_default(),
             Err(err) => {
                 log::error!("failed to load Assignments {}", err);
                 Default::default()
             }
-        };
-        state.fill();
-        state
+        }
     }
 
     fn should_notify(&self, old: &Self) -> bool {
@@ -93,6 +91,7 @@ impl Assignments {
         let latest = self
             .assignments
             .iter()
+            .filter(|a| !a.is_done())
             .max_by(|a1, a2| a1.due_date.cmp(&a2.due_date));
 
         if let Some(assignment) = latest {
@@ -204,6 +203,7 @@ impl TaskState {
 pub struct MultiplicationAssignment {
     pub id: Uuid,
     pub due_date: NaiveDate,
+    pub time: u64,
     title: String,
     description: String,
     pub num_tasks: i32,
@@ -221,6 +221,7 @@ impl MultiplicationAssignment {
         Self {
             id: Uuid::new_v4(),
             due_date,
+            time: 0,
             title: "Умножение".to_owned(),
             description: "едноцифрено по едноцифрено".to_owned(),
             num_tasks,
