@@ -124,6 +124,7 @@ pub struct MultiplicationTask {
     pub x: i32,
     pub y: i32,
     pub answer: Option<i32>,
+    pub seconds: u64,
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq)]
@@ -139,6 +140,7 @@ impl MultiplicationTaskBuilder {
             x: rng.sample(self.xrange),
             y: rng.sample(self.yrange),
             answer: None,
+            seconds: 0,
         }
     }
 }
@@ -203,7 +205,7 @@ impl TaskState {
 pub struct MultiplicationAssignment {
     pub id: Uuid,
     pub due_date: NaiveDate,
-    pub time: u64,
+    pub timed: bool,
     title: String,
     description: String,
     pub num_tasks: i32,
@@ -221,7 +223,7 @@ impl MultiplicationAssignment {
         Self {
             id: Uuid::new_v4(),
             due_date,
-            time: 0,
+            timed: true,
             title: "Умножение".to_owned(),
             description: "едноцифрено по едноцифрено".to_owned(),
             num_tasks,
