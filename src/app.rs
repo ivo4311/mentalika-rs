@@ -42,7 +42,7 @@ pub fn App() -> Html {
     d.reduce_mut(|a| a.fill());
     html! {
         <BrowserRouter>
-        <div class="w3-content w3-margin-top" style="max-width: 1400px">
+        <div class="w3-content w3-margin-top" style="max-width: 1600px">
             <div class="w3-row-padding">
                 <div class="w3-third">
                     <UserCard/>
