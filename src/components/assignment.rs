@@ -7,7 +7,7 @@ use yewdux::prelude::*;
 
 use crate::{
     app::Route,
-    model::{Assignments, MultiplicationAssignment, MultiplicationTask, Progress},
+    model::{Assignment, Assignments, Progress, Task},
 };
 
 #[derive(Properties, PartialEq)]
@@ -75,8 +75,8 @@ pub struct AssignmentCardProps {
 
 pub struct AssignmentCard {
     state: Rc<Assignments>,
-    dispatch: Dispatch<Assignments>,
-    assignment: Option<MultiplicationAssignment>,
+    _dispatch: Dispatch<Assignments>,
+    assignment: Option<Assignment>,
 }
 
 impl Component for AssignmentCard {
@@ -90,7 +90,7 @@ impl Component for AssignmentCard {
         let assignment = state.get(ctx.props().assignment).cloned();
         Self {
             state,
-            dispatch,
+            _dispatch: dispatch,
             assignment,
         }
     }
@@ -181,7 +181,7 @@ fn TimerView() -> Html {
 #[derive(PartialEq, Properties)]
 struct TaskViewProps {
     assignment_id: Uuid,
-    task: MultiplicationTask,
+    task: Task,
 }
 
 #[function_component]
@@ -214,7 +214,7 @@ fn TaskView(
 
 #[derive(Properties, PartialEq)]
 pub struct TaskListProps {
-    tasks: Vec<MultiplicationTask>,
+    tasks: Vec<Task>,
     show_time: bool,
 }
 

@@ -29,8 +29,8 @@ impl Store for Homework {
     }
 }
 
-impl From<Vec<MultiplicationAssignment>> for Homework {
-    fn from(assignments: Vec<MultiplicationAssignment>) -> Self {
+impl From<Vec<Assignment>> for Homework {
+    fn from(assignments: Vec<Assignment>) -> Self {
         let mut map: BTreeMap<NaiveDate, Vec<Uuid>> = BTreeMap::new();
         assignments.iter().filter(|a| !a.is_done()).for_each(|a| {
             let due_date = a.due_date.clone();
@@ -43,7 +43,7 @@ impl From<Vec<MultiplicationAssignment>> for Homework {
 
 #[derive(Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Assignments {
-    assignments: Vec<MultiplicationAssignment>,
+    assignments: Vec<Assignment>,
 }
 
 impl Store for Assignments {
@@ -64,11 +64,11 @@ impl Store for Assignments {
 }
 
 impl Assignments {
-    pub fn get(&self, id: Uuid) -> Option<&MultiplicationAssignment> {
+    pub fn get(&self, id: Uuid) -> Option<&Assignment> {
         return self.assignments.iter().find(|a| a.id == id);
     }
 
-    pub fn push(&mut self, a: MultiplicationAssignment) {
+    pub fn push(&mut self, a: Assignment) {
         self.assignments.push(a);
     }
 
@@ -97,11 +97,11 @@ impl Assignments {
         if let Some(assignment) = latest {
             let mut next = assignment.due_date.checked_add_days(Days::new(1)).unwrap();
             while next <= today {
-                self.push(MultiplicationAssignment::new_sd_sd(100, next));
+                self.push(Assignment::new_sd_sd(100, next));
                 next = next.checked_add_days(Days::new(1)).unwrap();
             }
         } else {
-            self.push(MultiplicationAssignment::new_sd_sd(100, today));
+            self.push(Assignment::new_sd_sd(100, today));
         }
     }
 }
@@ -120,7 +120,7 @@ impl Listener for AssignmentsListener {
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq)]
-pub struct MultiplicationTask {
+pub struct Task {
     pub x: i32,
     pub y: i32,
     pub answer: Option<i32>,
@@ -128,15 +128,15 @@ pub struct MultiplicationTask {
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq)]
-pub struct MultiplicationTaskBuilder {
+pub struct TaskBuilder {
     xrange: Uniform<i32>,
     yrange: Uniform<i32>,
 }
 
-impl MultiplicationTaskBuilder {
-    pub fn build(&self) -> MultiplicationTask {
+impl TaskBuilder {
+    pub fn build(&self) -> Task {
         let mut rng = rand::thread_rng();
-        MultiplicationTask {
+        Task {
             x: rng.sample(self.xrange),
             y: rng.sample(self.yrange),
             answer: None,
@@ -145,7 +145,7 @@ impl MultiplicationTaskBuilder {
     }
 }
 
-impl Display for MultiplicationTask {
+impl Display for Task {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.answer {
             Some(answer) => {
@@ -158,7 +158,7 @@ impl Display for MultiplicationTask {
     }
 }
 
-impl MultiplicationTask {
+impl Task {
     pub fn correct(&self) -> bool {
         match self.answer {
             Some(answer) => answer == self.x * self.y,
@@ -202,21 +202,21 @@ impl TaskState {
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq)]
-pub struct MultiplicationAssignment {
+pub struct Assignment {
     pub id: Uuid,
     pub due_date: NaiveDate,
     pub timed: bool,
     title: String,
     description: String,
     pub num_tasks: i32,
-    pub tasks: Vec<MultiplicationTask>,
-    next: Option<MultiplicationTask>,
-    builder: MultiplicationTaskBuilder,
+    pub tasks: Vec<Task>,
+    next: Option<Task>,
+    builder: TaskBuilder,
 }
 
-impl MultiplicationAssignment {
+impl Assignment {
     pub fn new_sd_sd(num_tasks: i32, due_date: NaiveDate) -> Self {
-        let builder = MultiplicationTaskBuilder {
+        let builder = TaskBuilder {
             xrange: Uniform::new(1, 10),
             yrange: Uniform::new(1, 10),
         };
@@ -276,7 +276,7 @@ impl MultiplicationAssignment {
         }
     }
 
-    pub fn next(&self) -> Option<MultiplicationTask> {
+    pub fn next(&self) -> Option<Task> {
         self.next
     }
 
