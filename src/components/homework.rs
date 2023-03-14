@@ -5,7 +5,7 @@ use chrono::{Locale, Utc};
 use yew::prelude::*;
 use yewdux::prelude::*;
 
-use crate::{components::assignment::AssignmentList, model::Homework};
+use crate::{components::assignment::AssignmentList, model::ui::Homework};
 
 #[function_component]
 pub fn HomeworkCard() -> Html {

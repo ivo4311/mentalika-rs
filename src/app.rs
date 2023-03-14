@@ -1,11 +1,8 @@
-// use crate::components::assignment::AssignmentDetails;
-// use crate::components::free::FreePlayCard;
-// use crate::components::homework::HomeworkCard;
 use crate::{
     components::{
         assignment::AssignmentCard, free::FreePlayCard, homework::HomeworkCard, user::UserCard,
     },
-    model::Assignments,
+    model::ui::Assignments,
 };
 
 use uuid::Uuid;
@@ -39,7 +36,7 @@ fn switch(routes: Route) -> Html {
 #[function_component]
 pub fn App() -> Html {
     let (_, d) = use_store::<Assignments>();
-    d.reduce_mut(|a| a.fill());
+    // d.reduce_mut(|a| a.reset());
     html! {
         <BrowserRouter>
         <div class="w3-content w3-margin-top" style="max-width: 1600px">

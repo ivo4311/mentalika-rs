@@ -7,7 +7,11 @@ use yewdux::prelude::*;
 
 use crate::{
     app::Route,
-    model::{Assignment, Assignments, Progress, Task},
+    model::{
+        assignment::{Assignment, Progress},
+        task::Task,
+        ui::Assignments,
+    },
 };
 
 #[derive(Properties, PartialEq)]
