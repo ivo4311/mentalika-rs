@@ -36,7 +36,7 @@ fn switch(routes: Route) -> Html {
 #[function_component]
 pub fn App() -> Html {
     let (_, d) = use_store::<Assignments>();
-    // d.reduce_mut(|a| a.reset());
+    d.reduce_mut(|a| a.fill());
     html! {
         <BrowserRouter>
         <div class="w3-content w3-margin-top" style="max-width: 1600px">

@@ -104,14 +104,6 @@ impl Assignments {
             self.push(Assignment::new_sd_sd_multiplication(100, today));
         }
     }
-
-    pub fn reset(&mut self) {
-        let today: NaiveDate = Utc::now().naive_utc().date();
-        self.assignments = vec![
-            Assignment::new_sd_sd_multiplication(5, today),
-            Assignment::new_sd_sd_addition(5, today),
-        ];
-    }
 }
 
 struct AssignmentsListener;
