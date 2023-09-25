@@ -1,3 +1,4 @@
+use chrono::Utc;
 use rand::{distributions::Uniform, Rng};
 use serde_derive::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -9,7 +10,8 @@ pub struct Task {
     pub y: i32,
     pub op: Operation,
     pub answer: Option<i32>,
-    pub seconds: u64,
+    pub t_start: Option<i64>,
+    pub t_finish: Option<i64>,
 }
 
 impl Display for Task {
@@ -95,7 +97,8 @@ impl TaskBuilder {
             y: rng.sample(self.yrange),
             op: Operation::Multiplication,
             answer: None,
-            seconds: 0,
+            t_start: Some(Utc::now().timestamp_millis()),
+            t_finish: None,
         }
     }
 
@@ -119,7 +122,8 @@ impl TaskBuilder {
             y,
             op,
             answer: None,
-            seconds: 0,
+            t_start: Some(Utc::now().timestamp_millis()),
+            t_finish: None,
         }
     }
 }

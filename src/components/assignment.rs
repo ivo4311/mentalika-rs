@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use chrono::Utc;
 use uuid::Uuid;
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -119,20 +120,15 @@ impl Component for AssignmentCard {
                     </h2>
 
                     <div class="w3-container">
-                        if let Some(task) = assignment.next() {
+                        if !assignment.is_done() {
                             <div class="w3-display-container">
                                 <ul class="w3-ul w3-display-topright">
                                     // ProgressView renders the number of correct and wrong tasks
                                     <ProgressView progress={assignment.progress()}/>
-
-                                    if assignment.timed {
-                                        // TimerView renders the time elapsed since the current task was started
-                                        <TimerView/>
-                                    }
                                 </ul>
 
                                 // TaskView renders the current task
-                                <TaskView assignment_id={assignment.id} {task}/>
+                                <TaskView assignment_id={assignment.id}/>
                             </div>
                         }
                         // TaskList renders the tasks that have been completed in the assignment
@@ -171,46 +167,36 @@ fn ProgressView(ProgressViewProps { progress }: &ProgressViewProps) -> Html {
     }
 }
 
-#[function_component]
-fn TimerView() -> Html {
-    html! {
-        <li class="w3-card-4 w3-bar w3-light-gray w3-round-large w3-padding-small w3-margin-bottom">
-            <div class="w3-bar-item w3-padding-small">
-                <i class="fa fa-solid fa-stopwatch w3-round w3-padding">{" 00:12"}</i>
-            </div>
-        </li>
-    }
-}
-
 #[derive(PartialEq, Properties)]
 struct TaskViewProps {
     assignment_id: Uuid,
-    task: Task,
 }
 
 #[function_component]
-fn TaskView(
-    TaskViewProps {
-        assignment_id,
-        task,
-    }: &TaskViewProps,
-) -> Html {
-    let (_, dispatch) = use_store::<Assignments>();
+fn TaskView(TaskViewProps { assignment_id }: &TaskViewProps) -> Html {
+    let (assignments, dispatch) = use_store::<Assignments>();
+    let next_task = assignments
+        .get(assignment_id.clone())
+        .expect("invalid assignment id")
+        .task();
     let onkeypress = {
         let id = assignment_id.clone();
         dispatch.reduce_mut_callback_with(move |s, e: KeyboardEvent| {
+            let mut task = next_task.clone();
             if e.key() == "Enter" {
                 let input: web_sys::HtmlInputElement = e.target_unchecked_into();
                 let answer = input.value().parse::<i32>().ok();
                 input.set_value("");
-                s.submit(id, answer);
+                task.answer = answer;
+                task.t_finish = Some(Utc::now().timestamp_millis());
+                s.submit_task(id, task);
             };
         })
     };
 
     html! {
         <div class="w3-container w3-text-teal w3-center w3-content w3-margin-right w3-margin-left">
-            <p class="w3-jumbo"><b>{task}</b></p>
+            <p class="w3-jumbo"><b>{next_task}</b></p>
             <p><input placeholder="Колко получи?" class="w3-input" type="text" {onkeypress}/></p>
         </div>
     }
@@ -236,8 +222,10 @@ pub fn TaskList(TaskListProps { tasks, show_time }: &TaskListProps) -> Html {
                     <li class={classes!("w3-bar", effects)}>
                         {task.state().icon()}
                         <div class="w3-bar-item w3-center">{ task }</div>
-                        if *show_time {
-                            <i class="w3-bar-item w3-round w3-right fa fa-solid fa-stopwatch w3-light-gray">{format!(" {}", task.seconds)}</i>
+                        if *show_time  {
+                            if let (Some(start), Some(finish)) = (task.t_start, task.t_finish) {
+                                <i class="w3-bar-item w3-round w3-right fa fa-solid fa-stopwatch w3-light-gray">{format!(" {:.2}", (finish - start) as f32/1000_f32)}</i>
+                            }
                         }
                     </li>
                 }

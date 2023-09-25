@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use yewdux::{prelude::*, storage};
 
-use super::assignment::Assignment;
+use super::{assignment::Assignment, task::Task};
 
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Homework {
@@ -72,17 +72,10 @@ impl Assignments {
         self.assignments.push(a);
     }
 
-    // pub fn remove(&mut self, id: Uuid) {
-    //     let pos = self.assignments.iter().position(|a| a.id == id);
-    //     if let Some(pos) = pos {
-    //         self.assignments.remove(pos);
-    //     }
-    // }
-
-    pub fn submit(&mut self, id: Uuid, answer: Option<i32>) {
+    pub fn submit_task(&mut self, id: Uuid, task: Task) {
         let assignment = self.assignments.iter_mut().find(|a| a.id == id);
         if let Some(assignment) = assignment {
-            assignment.submit(answer);
+            assignment.submit_task(task);
         }
     }
 

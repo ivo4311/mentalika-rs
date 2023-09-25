@@ -22,8 +22,8 @@ impl Assignment {
     pub fn new_sd_sd_multiplication(num_tasks: i32, due_date: NaiveDate) -> Self {
         let builder = TaskBuilder {
             mode: TaskBuilderMode::Multiplication,
-            xrange: Uniform::new(1, 10),
-            yrange: Uniform::new(1, 10),
+            xrange: Uniform::new(2, 10),
+            yrange: Uniform::new(2, 10),
         };
         Self {
             id: Uuid::new_v4(),
@@ -69,20 +69,14 @@ impl Assignment {
         )
     }
 
-    pub fn submit(&mut self, answer: Option<i32>) {
-        if let Some(task) = self.next.as_mut() {
-            task.answer = answer;
-            self.tasks.push(task.clone());
-            self.next = if self.is_done() {
-                None
-            } else {
-                Some(self.builder.build())
-            }
+    pub fn submit_task(&mut self, task: Task) {
+        if !self.is_done() {
+            self.tasks.push(task);
         }
     }
 
-    pub fn next(&self) -> Option<Task> {
-        self.next
+    pub fn task(&self) -> Task {
+        self.builder.build()
     }
 
     pub fn is_done(&self) -> bool {
