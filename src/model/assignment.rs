@@ -8,18 +8,17 @@ use super::task::{Task, TaskBuilder, TaskBuilderMode};
 #[derive(Clone, Serialize, Deserialize, PartialEq)]
 pub struct Assignment {
     pub id: Uuid,
-    pub due_date: NaiveDate,
+    pub due_date: Option<NaiveDate>,
     pub timed: bool,
     pub title: String,
     pub description: String,
     pub num_tasks: i32,
     pub tasks: Vec<Task>,
-    pub next: Option<Task>,
     pub builder: TaskBuilder,
 }
 
 impl Assignment {
-    pub fn new_sd_sd_multiplication(num_tasks: i32, due_date: NaiveDate) -> Self {
+    pub fn new_sd_sd_multiplication(num_tasks: i32, due_date: Option<NaiveDate>) -> Self {
         let builder = TaskBuilder {
             mode: TaskBuilderMode::Multiplication,
             xrange: Uniform::new(2, 10),
@@ -33,12 +32,11 @@ impl Assignment {
             description: "едноцифрено по едноцифрено".to_owned(),
             num_tasks,
             tasks: Vec::new(),
-            next: Some(builder.build()),
             builder: builder,
         }
     }
 
-    pub fn new_sd_sd_addition(num_tasks: i32, due_date: NaiveDate) -> Self {
+    pub fn new_sd_sd_addition(num_tasks: i32, due_date: Option<NaiveDate>) -> Self {
         let builder = TaskBuilder {
             mode: TaskBuilderMode::AdditionAndSubtraction,
             xrange: Uniform::new(1, 10),
@@ -52,7 +50,6 @@ impl Assignment {
             description: "едноцифрено с едноцифрено".to_owned(),
             num_tasks,
             tasks: Vec::new(),
-            next: Some(builder.build()),
             builder: builder,
         }
     }

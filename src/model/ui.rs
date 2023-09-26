@@ -32,18 +32,21 @@ impl Store for Homework {
 impl From<Vec<Assignment>> for Homework {
     fn from(assignments: Vec<Assignment>) -> Self {
         let mut map: BTreeMap<NaiveDate, Vec<Uuid>> = BTreeMap::new();
-        assignments.iter().filter(|a| !a.is_done()).for_each(|a| {
-            let due_date = a.due_date.clone();
-            let id = a.id.clone();
-            map.entry(due_date).or_default().push(id);
-        });
+        assignments
+            .iter()
+            .filter(|a| !a.is_done() && a.due_date.is_some())
+            .for_each(|a| {
+                let due_date = a.due_date.unwrap().clone();
+                let id = a.id.clone();
+                map.entry(due_date).or_default().push(id);
+            });
         Self { homework: map }
     }
 }
 
 #[derive(Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Assignments {
-    assignments: Vec<Assignment>,
+    pub assignments: Vec<Assignment>,
 }
 
 impl Store for Assignments {
@@ -84,17 +87,21 @@ impl Assignments {
         let latest = self
             .assignments
             .iter()
-            .filter(|a| !a.is_done())
+            .filter(|a| !a.is_done() && a.due_date.is_some())
             .max_by(|a1, a2| a1.due_date.cmp(&a2.due_date));
 
         if let Some(assignment) = latest {
-            let mut next = assignment.due_date.checked_add_days(Days::new(1)).unwrap();
+            let mut next = assignment
+                .due_date
+                .unwrap()
+                .checked_add_days(Days::new(1))
+                .unwrap();
             while next <= today {
-                self.push(Assignment::new_sd_sd_multiplication(100, next));
+                self.push(Assignment::new_sd_sd_multiplication(100, Some(next)));
                 next = next.checked_add_days(Days::new(1)).unwrap();
             }
         } else {
-            self.push(Assignment::new_sd_sd_multiplication(100, today));
+            self.push(Assignment::new_sd_sd_multiplication(100, Some(today)));
         }
     }
 }
