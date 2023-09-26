@@ -52,14 +52,15 @@ pub fn AssignmentList(
                 };
                 html!{
                     if let Some(assignment) = assignment {
-                        <li class="w3-row" {onclick}>
-                            <div class="w3-cell w3-cell-middle w3-round w3-teal w3-padding" >
+                        <li class="w3-bar" {onclick}>
+                            <div class="w3-bar-item w3-round w3-teal w3-padding-16" >
                                 <i class="fa fa-solid fa-calculator w3-xlarge"></i>
                             </div>
-                            <div class="w3-cell w3-padding">
+                            <div class="w3-bar-item w3-padding">
                                 <span>{assignment.title()}</span><br />
                                 <span class="w3-small">{assignment.description()}</span>
                             </div>
+                            
                         </li>
                     }
                 }
