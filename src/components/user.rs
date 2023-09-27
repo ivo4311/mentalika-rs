@@ -13,6 +13,7 @@ pub fn UserCard() -> Html {
                 <hr />
                 <UserSkills/>
                 <UserAchievements/>
+                <UserArchive/>
             </div>
         </div>
     }
@@ -117,9 +118,27 @@ fn UserSkills() -> Html {
 fn UserAchievements() -> Html {
     html! {
         <>
-        <p class="w3-large">
-            <b><i class="fa fa-solid fa-award fa-fw w3-margin-right w3-text-teal"></i>{"Заслуги (TODO)"}</b>
-        </p>
+        <div class="w3-display-container">
+            <p class="w3-large">
+                <b><i class="fa fa-solid fa-award fa-fw w3-margin-right w3-text-teal"></i>{"Заслуги (TODO)"}</b>
+            </p>
+            <div class="w3-display-bottomright w3-tiny"><a href="#">{"see more"}</a></div>
+        </div>
+        <hr />
+        </>
+    }
+}
+
+#[function_component]
+fn UserArchive() -> Html {
+    html! {
+        <>
+        <div class="w3-display-container">
+            <p class="w3-large">
+                <b><i class="fa fa-solid fa-book fa-fw w3-margin-right w3-text-teal"></i>{"Архив (TODO)"}</b>
+            </p>
+            <div class="w3-display-bottomright w3-tiny"><a href="#">{"see more"}</a></div>
+        </div>
         <hr />
         </>
     }
