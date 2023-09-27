@@ -75,6 +75,16 @@ impl Assignments {
         self.assignments.push(a);
     }
 
+    pub fn remove(&mut self, id: Uuid) {
+        let index = self
+            .assignments
+            .iter()
+            .position(|a| a.id == id && a.due_date.is_none());
+        if let Some(index) = index {
+            self.assignments.remove(index);
+        }
+    }
+
     pub fn submit_task(&mut self, id: Uuid, task: Task) {
         let assignment = self.assignments.iter_mut().find(|a| a.id == id);
         if let Some(assignment) = assignment {

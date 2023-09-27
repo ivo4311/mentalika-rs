@@ -28,7 +28,7 @@ pub fn AssignmentList(
         assignments,
     }: &AssignmentListProps,
 ) -> Html {
-    let (state, _dispatch) = use_store::<Assignments>();
+    let (state, dispatch) = use_store::<Assignments>();
     let navigator = use_navigator().unwrap();
 
     let hoverable = if *active {
@@ -36,6 +36,7 @@ pub fn AssignmentList(
     } else {
         classes!()
     };
+
     html! {
         <ul class={classes!("w3-ul", "w3-margin-left", hoverable)}>
         {
@@ -50,6 +51,13 @@ pub fn AssignmentList(
                 } else{
                     Callback::from(move |_| {})
                 };
+                let on_remove = {
+                    let id = id.clone();
+                    dispatch.reduce_mut_callback_with(move |assignments, e: MouseEvent|{
+                        assignments.remove(id);
+                        e.set_cancel_bubble(true);
+                    })
+                };
                 html!{
                     if let Some(assignment) = assignment {
                         <li class="w3-bar" {onclick}>
@@ -60,7 +68,13 @@ pub fn AssignmentList(
                                 <span>{assignment.title()}</span><br />
                                 <span class="w3-small">{assignment.description()}</span>
                             </div>
-                            
+                            if assignment.due_date.is_none() {
+                                <div class="w3-bar-item w3-right w3-padding-16">
+                                    <button onclick={on_remove} class="w3-button">
+                                        <i class="fa fa-solid fa-trash-can w3-text-red w3-large"></i>
+                                    </button>
+                                </div>
+                            }
                         </li>
                     }
                 }
